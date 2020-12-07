@@ -20,6 +20,7 @@ public class NodeData implements node_data, Comparable<node_data> {
 
     public NodeData(int key) {
         this.key = key;
+        this.p = new Point3D(0,0,0);
     }
 
     public NodeData(int key, String info, Point3D p, double weight) {
