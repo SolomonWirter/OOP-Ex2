@@ -329,8 +329,8 @@ public class WDGraph_Test {
     }
 
     private void Connect(directed_weighted_graph graph) {
-        for (int i = 0; i < graph.nodeSize()/8; i++) {
-            for (int j = 0; j < graph.nodeSize()/8; j++) {
+        for (int i = 0; i < graph.nodeSize(); i++) {
+            for (int j = 0; j < graph.nodeSize(); j++) {
                 graph.connect(i, j, 12.5);
             }
         }
