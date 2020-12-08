@@ -114,87 +114,34 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     }
 
 
-//    public boolean save(String file) {
-//        String json = new Gson().toJson(graph);
-//        try {
-//            Writer writer = new FileWriter(file);
-//            writer.write(json);
-//            writer.flush();
-//            return true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
-
-
-//    public boolean load(String file) {
-//        try {
-//            Reader reader = new FileReader(file);
-//            GsonBuilder gsonBuilder = new GsonBuilder();
-//
-//            DWGraph_DS_Deserializer dwGraph_ds_deserializer = new DWGraph_DS_Deserializer();
-//            gsonBuilder.registerTypeAdapter(DWGraph_DS.class, dwGraph_ds_deserializer);
-//
-//            Gson gson = gsonBuilder.create();
-//            directed_weighted_graph g = gson.fromJson(reader, DWGraph_DS.class);
-//            this.init(g);
-//            return true;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
-//
-    //***************************************88
-//@Override
-//public boolean save(String file) {
-//
-//    Gson g = new  GsonBuilder().create();
-//    String json = g.toJson(graph);
-//
-//    try {
-//        PrintWriter pw = new PrintWriter(new File(file));
-//        pw.write(json);
-//        pw.close();
-//        return true;
-//    }
-//    catch (FileNotFoundException e) {
-//        e.printStackTrace();
-//        return false;
-//    }
-//}
-
-
-    //added this
     @Override
     public boolean save(String file) {
-        try{
+        try {
             Writer writer = new FileWriter(file);
             Gson gson = new Gson();
 
-            JsonObject obj= new JsonObject();
+            JsonObject obj = new JsonObject();
             JsonArray edgesArrayJson = new JsonArray();
             JsonArray graphArrayJson = new JsonArray();
 
-            for(node_data nodeData: graph.getV()){
+            for (node_data nodeData : graph.getV()) {
                 JsonObject JsonNodeData = new JsonObject();
-                String loc = nodeData.getLocation().x()+","+nodeData.getLocation().y()+","+nodeData.getLocation().z();
-                JsonNodeData.addProperty("pos",loc);
-                JsonNodeData.addProperty("id",nodeData.getKey());
+                String loc = nodeData.getLocation().x() + "," + nodeData.getLocation().y() + "," + nodeData.getLocation().z();
+                JsonNodeData.addProperty("pos", loc);
+                JsonNodeData.addProperty("id", nodeData.getKey());
                 JsonElement jsonElementNode = JsonNodeData;
                 graphArrayJson.add(JsonNodeData);
-                for(edge_data edgeData : graph.getE(nodeData.getKey())){
+                for (edge_data edgeData : graph.getE(nodeData.getKey())) {
                     JsonObject jsonEdgeData = new JsonObject();
-                    jsonEdgeData.addProperty("src",edgeData.getSrc());
-                    jsonEdgeData.addProperty("dest",edgeData.getDest());
-                    jsonEdgeData.addProperty("w",edgeData.getWeight());
+                    jsonEdgeData.addProperty("src", edgeData.getSrc());
+                    jsonEdgeData.addProperty("dest", edgeData.getDest());
+                    jsonEdgeData.addProperty("w", edgeData.getWeight());
                     JsonElement jsonElement = jsonEdgeData;
                     edgesArrayJson.add(jsonElement);
                 }
             }
-            obj.add("Edges",edgesArrayJson);
-            obj.add("Nodes",graphArrayJson);
+            obj.add("Edges", edgesArrayJson);
+            obj.add("Nodes", graphArrayJson);
             String JsonGraph = obj.toString();
             writer.write(JsonGraph);
             writer.flush();
@@ -204,6 +151,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
             return false;
         }
     }
+
     @Override
     public boolean load(String file) {//Boaz says we Should be use this
         try (Reader reader = new FileReader(file)) {
@@ -222,7 +170,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
                 y += arrStr[1];
                 z += arrStr[2];
                 Point3D p = new Point3D(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z));
-                node_data nodeData = new NodeData(id, "", p, 0);
+                node_data nodeData = new NodeData(id, p);
                 graphV.put(id, nodeData);
             }
             HashMap<Integer, HashMap<Integer, edge_data>> graphEdges = new HashMap<Integer, HashMap<Integer, edge_data>>();
@@ -254,6 +202,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
         }
     }
     //added this
+
     /**
      * [Dijkstra Algorithm]
      * Applying a Weight on every node that reachable from the source (node)
