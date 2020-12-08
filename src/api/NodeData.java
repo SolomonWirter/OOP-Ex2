@@ -15,15 +15,15 @@ public class NodeData implements node_data, Comparable<node_data> {
 
     private int tag = -1;
     private String info;
-    private Point3D p;
+    private geo_location p;
     private double weight;
 
     public NodeData(int key) {
         this.key = key;
-        this.p = new Point3D(0,0,0);
+        this.p = new Point3D(0, 0, 0);
     }
 
-    public NodeData(int key, Point3D p) {
+    public NodeData(int key, geo_location p) {
         this.key = key;
         this.p = p;
     }
@@ -31,7 +31,7 @@ public class NodeData implements node_data, Comparable<node_data> {
     public NodeData(node_data n) {
         this.key = n.getKey();
         this.info = n.getInfo();
-        this.p = (Point3D) n.getLocation();
+        this.p =  n.getLocation();
         this.weight = n.getWeight();
     }
 
