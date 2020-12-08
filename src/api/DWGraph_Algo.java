@@ -116,7 +116,9 @@ public class DWGraph_Algo implements dw_graph_algorithms {
 
     @Override
     public boolean save(String file) {
+
         try {
+
             Writer writer = new FileWriter(file);
             Gson gson = new Gson();
 
@@ -125,26 +127,39 @@ public class DWGraph_Algo implements dw_graph_algorithms {
             JsonArray graphArrayJson = new JsonArray();
 
             for (node_data nodeData : graph.getV()) {
+
                 JsonObject JsonNodeData = new JsonObject();
-                String loc = nodeData.getLocation().x() + "," + nodeData.getLocation().y() + "," + nodeData.getLocation().z();
-                JsonNodeData.addProperty("pos", loc);
+
+                double x = nodeData.getLocation().x();
+                double y = nodeData.getLocation().y();
+                double z = nodeData.getLocation().z();
+
+                String location = x + "," + y + "," + z;
+
+                JsonNodeData.addProperty("pos", location);
                 JsonNodeData.addProperty("id", nodeData.getKey());
-                JsonElement jsonElementNode = JsonNodeData;
+
                 graphArrayJson.add(JsonNodeData);
+
                 for (edge_data edgeData : graph.getE(nodeData.getKey())) {
+
                     JsonObject jsonEdgeData = new JsonObject();
+
                     jsonEdgeData.addProperty("src", edgeData.getSrc());
-                    jsonEdgeData.addProperty("dest", edgeData.getDest());
                     jsonEdgeData.addProperty("w", edgeData.getWeight());
-                    JsonElement jsonElement = jsonEdgeData;
-                    edgesArrayJson.add(jsonElement);
+                    jsonEdgeData.addProperty("dest", edgeData.getDest());
+
+                    edgesArrayJson.add(jsonEdgeData);
                 }
             }
+
             obj.add("Edges", edgesArrayJson);
             obj.add("Nodes", graphArrayJson);
+
             String JsonGraph = obj.toString();
             writer.write(JsonGraph);
             writer.flush();
+
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -153,55 +168,59 @@ public class DWGraph_Algo implements dw_graph_algorithms {
     }
 
     @Override
-    public boolean load(String file) {//Boaz says we Should be use this
-        try (Reader reader = new FileReader(file)) {
+    public boolean load(String file) {
+
+        directed_weighted_graph graph = new DWGraph_DS();
+
+        try {
+            Reader reader = new FileReader(file);
+
             JsonElement graphElement = JsonParser.parseReader(reader);
-            HashMap<Integer, node_data> graphV = new HashMap<>();
-            JsonObject graphVJson = graphElement.getAsJsonObject();
-            JsonArray inputMap = graphVJson.getAsJsonArray("Nodes");
-            JsonObject objectGraphV;
-            for (int i = 0; i < inputMap.size(); i++) {
-                objectGraphV = inputMap.get(i).getAsJsonObject();
-                int id = objectGraphV.get("id").getAsInt();
-                String s = objectGraphV.get("pos").getAsString();
-                String arrStr[] = s.split(",");
-                String x = "", y = "", z = "";
-                x += arrStr[0];
-                y += arrStr[1];
-                z += arrStr[2];
-                Point3D p = new Point3D(Double.parseDouble(x), Double.parseDouble(y), Double.parseDouble(z));
-                node_data nodeData = new NodeData(id, p);
-                graphV.put(id, nodeData);
+            JsonObject graphObject = graphElement.getAsJsonObject();
+
+            JsonArray nodes = graphObject.getAsJsonArray("Nodes");
+            JsonObject jsonNodes;
+
+            for (int i = 0; i < nodes.size(); i++) {
+                jsonNodes = nodes.get(i).getAsJsonObject();
+
+                int id = jsonNodes.get("id").getAsInt();
+                String point = jsonNodes.get("pos").getAsString();
+                String[] pointArray = point.split(",");
+
+                double x = Double.parseDouble(pointArray[0]);
+                double y = Double.parseDouble(pointArray[1]);
+                double z = Double.parseDouble(pointArray[2]);
+
+                geo_location p = new Point3D(x, y, z);
+                node_data vertex = new NodeData(id, p);
+
+                graph.addNode(vertex);
             }
-            HashMap<Integer, HashMap<Integer, edge_data>> graphEdges = new HashMap<Integer, HashMap<Integer, edge_data>>();
-            HashMap<Integer, HashSet<Integer>> destEdges = new HashMap<>();
-            for (node_data vertex : graphV.values()) {
-                HashMap<Integer, edge_data> temp1 = new HashMap<Integer, edge_data>();
-                HashSet<Integer> temp2 = new HashSet<Integer>();
-                graphEdges.put(vertex.getKey(), temp1);
-                destEdges.put(vertex.getKey(), temp2);
+
+            JsonArray edges = graphObject.getAsJsonArray("Edges");
+            JsonObject jsonEdges;
+
+            for (int i = 0; i < edges.size(); i++) {
+                jsonEdges = edges.get(i).getAsJsonObject();
+
+                int src = jsonEdges.get("src").getAsInt();
+                double w = jsonEdges.get("w").getAsDouble();
+                int dest = jsonEdges.get("dest").getAsInt();
+
+                graph.connect(src, dest, w);
             }
-            JsonObject graphEdgesJson = graphElement.getAsJsonObject();
-            JsonArray edgesJsonElements = graphVJson.getAsJsonArray("Edges");
-            JsonObject objectEdges;
-            for (int i = 0; i < edgesJsonElements.size(); i++) {
-                objectEdges = edgesJsonElements.get(i).getAsJsonObject();
-                int src = objectEdges.get("src").getAsInt(), dest = objectEdges.get("dest").getAsInt();
-                double w = objectEdges.get("w").getAsDouble();
-                edge_data edge = new EdgeData(src, dest, w);
-                graphEdges.get(src).put(dest, edge);
-                destEdges.get(dest).add(src);
-            }
-            int edgeSize = edgesJsonElements.size();
-            DWGraph_DS dwGraph_ds = new DWGraph_DS(edgeSize, graphV, graphEdges, destEdges);
-            this.init(dwGraph_ds);
+
+            this.init(graph);
             return true;
+
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+
     }
-    //added this
+
 
     /**
      * [Dijkstra Algorithm]
@@ -216,22 +235,33 @@ public class DWGraph_Algo implements dw_graph_algorithms {
             Tags.put(vertex.getKey(), Double.MAX_VALUE);
         }
         Tags.put(node.getKey(), 0.0);
+
         PriorityQueue<node_data> pQueue = new PriorityQueue<node_data>();
         List<node_data> visited = new LinkedList<node_data>();
+
         visited.add(node);
         pQueue.add(node);
+
         while (!pQueue.isEmpty()) {
+
             node_data nodeStart = pQueue.poll();
             Iterator<edge_data> iterator = graph.getE(nodeStart.getKey()).iterator();
+
             while (iterator.hasNext()) {
+
                 edge_data nodeNeighbor = iterator.next();
+
                 double srcTag = Tags.get(nodeNeighbor.getSrc());
                 double edgeWeight = graph.getEdge(nodeNeighbor.getSrc(), nodeNeighbor.getDest()).getWeight();
                 double weight = srcTag + edgeWeight;
+
                 if (weight < Tags.get(nodeNeighbor.getDest())) {
+
                     Tags.put(nodeNeighbor.getDest(), weight);
                     pointer.put(nodeNeighbor.getDest(), nodeNeighbor.getSrc());
+
                     if (!visited.contains(nodeNeighbor)) {
+
                         pQueue.add(graph.getNode(nodeNeighbor.getDest()));
                         visited.add(graph.getNode(nodeNeighbor.getDest()));
                     }
