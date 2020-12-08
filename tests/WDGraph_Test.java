@@ -1,6 +1,9 @@
 import api.*;
 import gameClient.util.Point3D;
-import org.junit.Test;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -8,15 +11,15 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class WDGraph_Test {
     private static int _errors = 0, _tests = 0, _number_of_exception = 0;
     private static String _log = "";
 
-    void main() {
-        assertEquals(6, 6);
-    }
 
     @Test
+    @Order(3)
     public void Copy() {
         directed_weighted_graph g1 = new DWGraph_DS();
         for (int i = 0; i < 10; i++) {
@@ -41,6 +44,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(4)
     public void IsConnected() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 0; i < 20; i++) {
@@ -69,6 +73,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(5)
     public void isConnected() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 0; i < 10; i++) {
@@ -98,7 +103,9 @@ public class WDGraph_Test {
 
     }
 
+
     @Test
+    @Order(6)
     public void IsConnected_RunTime() {
         long start = new Date().getTime();
         directed_weighted_graph graph = new DWGraph_DS();
@@ -137,6 +144,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(7)
     public void Copy_RunTime() {
         long start = new Date().getTime();
         directed_weighted_graph graph = new DWGraph_DS();
@@ -164,6 +172,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(8)
     public void ShortList() {
         directed_weighted_graph g1 = new DWGraph_DS();
         for (int i = 0; i <= 5; i++) {
@@ -211,8 +220,8 @@ public class WDGraph_Test {
         assertEquals(path4, ag.shortestPath(2, 3));
 
     }
-
     @Test
+    @Order(9)
     public void ShortWeight() {
         directed_weighted_graph g1 = new DWGraph_DS();
         for (int i = 0; i <= 5; i++) {
@@ -242,6 +251,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(1)
     public void save() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 0; i < 10; i++) {
@@ -252,16 +262,41 @@ public class WDGraph_Test {
         dw_graph_algorithms aGraph = new DWGraph_Algo();
         aGraph.init(graph);
         String g = "graphCheck";
-        aGraph.save(g);
+        assertTrue(aGraph.save(g));
     }
 
     @Test
+    @Order(2)
     public void load() {
         dw_graph_algorithms aGraph = new DWGraph_Algo();
-        aGraph.load("graphCheck");
+        assertTrue(aGraph.load("graphCheck"));
     }
 
     @Test
+    @Order(10)
+    public void eq() {
+        directed_weighted_graph g1 = new DWGraph_DS();
+        g1.addNode(new NodeData(0));
+        g1.addNode(new NodeData(1));
+        g1.addNode(new NodeData(2));
+        g1.addNode(new NodeData(3));
+        g1.addNode(new NodeData(4));
+        g1.connect(0, 1, 2);
+        directed_weighted_graph g2 = new DWGraph_DS();
+        g2.addNode(new NodeData(0));
+        g2.addNode(new NodeData(1));
+        g2.addNode(new NodeData(2));
+        g2.addNode(new NodeData(3));
+        g2.addNode(new NodeData(4));
+        g2.connect(0, 1, 2);
+
+
+        assertEquals(g1, g2);
+
+    }
+
+    @Test
+    @Order(11)
     public void A_Bit_FromAll() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 1; i < 50; i++) {
@@ -302,6 +337,7 @@ public class WDGraph_Test {
         algoV2.load("Graph");
         assertEquals(algoV2.load("Graph"), algo.load("GraphV2"));
 
+        assertEquals(algoV2.getGraph(), graph);
         assertTrue(algoV2.isConnected() & algo.isConnected());
 
         assertEquals(8.5, algo.shortestPathDist(0, 5));
@@ -322,6 +358,7 @@ public class WDGraph_Test {
     }
 
     @Test
+    @Order(12)
     public void rmNode() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 0; i < 1000; i++) {
