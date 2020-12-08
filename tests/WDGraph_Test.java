@@ -1,4 +1,5 @@
 import api.*;
+import gameClient.util.Point3D;
 import org.junit.Test;
 
 import java.util.Date;
@@ -263,9 +264,13 @@ public class WDGraph_Test {
     @Test
     public void A_Bit_FromAll() {
         directed_weighted_graph graph = new DWGraph_DS();
-        for (int i = 0; i < 50; i++) {
+        for (int i = 1; i < 50; i++) {
             graph.addNode(new NodeData(i));
         }
+        node_data ver = new NodeData(0);
+        Point3D P = new Point3D(1, 2, 3);
+        ver.setLocation(P);
+        graph.addNode(ver);
         Connect(graph);
         //Path N.1
         graph.connect(0, 1, 3.75);
@@ -294,6 +299,7 @@ public class WDGraph_Test {
         dw_graph_algorithms algoV2 = new DWGraph_Algo();
         algoV2.init(graphV2);
         algoV2.save("GraphV2");
+        algoV2.load("Graph");
         assertEquals(algoV2.load("Graph"), algo.load("GraphV2"));
 
         assertTrue(algoV2.isConnected() & algo.isConnected());
@@ -301,22 +307,22 @@ public class WDGraph_Test {
         assertEquals(8.5, algo.shortestPathDist(0, 5));
         assertEquals(5.25, algo.shortestPathDist(12, 16));
 
-        List<node_data> path1 = new LinkedList<>();
-        path1.add(new NodeData(0));
+        List<node_data> path1 = new LinkedList<node_data>();
+        path1.add(ver);
         path1.add(new NodeData(2));
         path1.add(new NodeData(5));
-        List<node_data> path2 = new LinkedList<>();
+        List<node_data> path2 = new LinkedList<node_data>();
         path2.add(new NodeData(12));
         path2.add(new NodeData(13));
         path2.add(new NodeData(15));
         path2.add(new NodeData(16));
-
         assertEquals(path1, algoV2.shortestPath(0, 5));
         assertEquals(path2, algoV2.shortestPath(12, 16));
 
     }
+
     @Test
-    public void rmNode(){
+    public void rmNode() {
         directed_weighted_graph graph = new DWGraph_DS();
         for (int i = 0; i < 1000; i++) {
             graph.addNode(new NodeData(i));
