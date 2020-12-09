@@ -156,6 +156,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
             obj.add("Edges", edgesArrayJson);
             obj.add("Nodes", graphArrayJson);
 
+
             String JsonGraph = obj.toString();
             writer.write(JsonGraph);
             writer.flush();
@@ -169,8 +170,6 @@ public class DWGraph_Algo implements dw_graph_algorithms {
 
     @Override
     public boolean load(String file) {
-
-        directed_weighted_graph graph = new DWGraph_DS();
 
         try {
             Reader reader = new FileReader(file);
@@ -210,9 +209,8 @@ public class DWGraph_Algo implements dw_graph_algorithms {
 
                 graph.connect(src, dest, w);
             }
-
-            this.init(graph);
-            return true;
+        this.init(graph);
+        return true;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -236,7 +234,7 @@ public class DWGraph_Algo implements dw_graph_algorithms {
         }
         Tags.put(node.getKey(), 0.0);
 
-        PriorityQueue<node_data> pQueue = new PriorityQueue<node_data>();
+        Queue<node_data> pQueue = new LinkedList<node_data>();
         List<node_data> visited = new LinkedList<node_data>();
 
         visited.add(node);
@@ -317,4 +315,6 @@ public class DWGraph_Algo implements dw_graph_algorithms {
         }
         return transposeGraph;
     }
+
+
 }
