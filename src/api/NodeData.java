@@ -1,11 +1,10 @@
 package api;
 
 import gameClient.util.Point3D;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class NodeData implements node_data, Comparable<node_data> {
+public class NodeData implements node_data {
     private int key;
 
     @Override
@@ -95,11 +94,6 @@ public class NodeData implements node_data, Comparable<node_data> {
     @Override
     public String toString() {
         return "Key:(" + key + ")";
-    }
-
-    @Override
-    public int compareTo(@NotNull node_data o) {
-        return this.getTag() - o.getTag();
     }
 
 }
