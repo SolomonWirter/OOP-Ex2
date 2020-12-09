@@ -14,7 +14,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Ex2 {
     public static void main(String[] args) {
@@ -22,6 +24,8 @@ public class Ex2 {
         //get graph as api.dw_graph_algorithms object
         api.dw_graph_algorithms graphAlgo = setGraph(game.getGraph());
         System.out.println(game.toString());
+
+        HashMap<Integer,HashMap<Integer, List<api.node_data>>> l = dijkstraAll(graphAlgo,game);
 
         System.out.println(howMuchAgents(game.toString()));
 //        System.out.println(game.timeToEnd());
@@ -143,4 +147,24 @@ public class Ex2 {
      * while the complexity can be struggle it not something that happening in game
      * the space complexity added will be O(v*v) which isn't so bad...
      */
+    public static HashMap<Integer,HashMap<Integer, List<api.node_data>>> dijkstraAll(api.dw_graph_algorithms graphAlgo, game_service game){
+        HashMap<Integer,HashMap<Integer, List<api.node_data>>> map = new HashMap<Integer,HashMap<Integer, List<api.node_data>>>();
+        api.directed_weighted_graph graph = graphAlgo.getGraph();
+
+        //added empty map to add values after
+        for (api.node_data nodeData : graph.getV()){
+            HashMap<Integer, List<api.node_data>> innerMap = new HashMap<Integer, List<api.node_data>>();
+            map.put(nodeData.getKey(), innerMap);
+        }
+
+        for (api.node_data srcData :graph.getV()){
+            int src = srcData.getKey();
+            for(api.node_data destData :graph.getV()){
+                int dest = destData.getKey();
+                List<api.node_data> list = graphAlgo.shortestPath(src, dest);
+                map.get(src).put(dest, list);
+            }
+        }
+        return map;
+    }
 }
