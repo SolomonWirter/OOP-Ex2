@@ -21,10 +21,11 @@ public class Ex2 {
         game_service game = Game_Server_Ex2.getServer(8);
         //get graph as api.dw_graph_algorithms object
         api.dw_graph_algorithms graphAlgo = setGraph(game.getGraph());
-//        System.out.println(game.getPokemons());
-        System.out.println(game.startGame());
-        System.out.println(game.timeToEnd());
-        
+        System.out.println(game.toString());
+
+        System.out.println(howMuchAgents(game.toString()));
+//        System.out.println(game.timeToEnd());
+//
 
 
 //        System.out.println(graphAlgo.getGraph());
@@ -119,6 +120,21 @@ public class Ex2 {
         }
         return l;
     }
+
+
+    /**
+     * Return how much agents we can add in game
+     * @param game
+     * @return int
+     */
+    public static int howMuchAgents(String game){
+        JsonElement gameElement = JsonParser.parseString(game);
+        JsonObject pokemonsObject = gameElement.getAsJsonObject();
+        JsonElement gameServerElement = pokemonsObject.get("GameServer");
+        JsonObject gameServerObject = gameServerElement.getAsJsonObject();
+        return gameServerObject.get("agents").getAsInt();
+    }
+
 
     /**
      * To shortest path from any node to pokemon we should Transpose the graph and use dijkstra
