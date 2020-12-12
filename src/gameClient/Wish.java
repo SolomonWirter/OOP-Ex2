@@ -2,6 +2,7 @@ package gameClient;
 import api.*;
 import Server.Game_Server_Ex2;
 import com.google.gson.*;
+import gameClient.util.Point3D;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -22,9 +23,11 @@ public class Wish implements Runnable{
     @Override
     public void run() {
         game_service game = Game_Server_Ex2.getServer(23);
-        init(game);//done
+        boolean isConnected = buildGraph(game.getGraph(), game).isConnected();
+        if(Arena.json2Pokemons(game.getPokemons()).size()<=howMuchAgents(game.toString()))
+            isConnected = false;
+        init(game,isConnected);
         game.startGame();
-        int ind=0;
         while (game.isRunning()){
             try {
                 arena.setPokemons(Arena.json2Pokemons(game.getPokemons()));
@@ -33,7 +36,6 @@ public class Wish implements Runnable{
                 _win.setTitle("Until now - " + game.toString());
                 moveAgents(game, arena, nextNodes);
                 Thread.sleep(100);
-                ind++;
                 setNextNodes(game);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -62,7 +64,7 @@ public class Wish implements Runnable{
             i++;
         }
     }
-    public void init(game_service game) {
+    public void init(game_service game, boolean isConnected) {
         dw_graph_algorithms gg = buildGraph(game.getGraph(), game);
         //gg.init(g);
         arena = new Arena();
@@ -80,22 +82,66 @@ public class Wish implements Runnable{
             for(int a = 0;a<cl_fs.size();a++) {
                 Arena.updateEdge(cl_fs.get(a),gg.getGraph());
             }
+            dijkstraAllMap = new HashMap<>();
+            dijkstraAll(gg.getGraph());
             arena.setPokemons(cl_fs);
-            SetGameAgents(game, arena.getGraph());
+            if(isConnected)
+                SetGameAgents(game, gg.getGraph());
+            else
+                SetGameAgentsButFalse(game, gg.getGraph());
             List<CL_Agent> cl_agents = Arena.getAgents(game.getAgents(), gg.getGraph());
             arena.setAgents(cl_agents);
             _win = new MyFrame("test Ex2");
             _win.setSize(1000, 700);
             _win.update(arena);
             _win.show();
-            dijkstraAllMap = new HashMap<>();
-            dijkstraAll(gg.getGraph());
             nextNodes = new HashMap<>();
             setNextNodesInit(game);
         }
         catch (JSONException | InterruptedException e) {e.printStackTrace();}
     }
 
+
+    /**
+     * If the graph isn't fully connected, i'll prefer to set the agents in
+     * the place with the most connectivity nodes
+     * @param game
+     * @param graph
+     */
+    public void SetGameAgentsButFalse(api.game_service game, directed_weighted_graph graph){
+        ArrayList<CL_Pokemon> gotOne= Arena.json2Pokemons(game.getPokemons());
+        dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
+        graphAlgorithms.init(graph);
+        int agentsSize = howMuchAgents(game.toString());
+
+        for (CL_Pokemon poke : gotOne) {Arena.updateEdge(poke, graph);}
+
+        HashMap<Point3D, Integer> maxUnConnectivityMap = new HashMap<>();
+        for(CL_Pokemon poke : gotOne){
+            int forNowUnConnectivity = 0;
+            for(node_data node : graph.getV()){
+                if(node.getKey() != poke.get_edge().getDest()){
+                    double dist =graphAlgorithms.shortestPathDist(poke.get_edge().getDest(), node.getKey());
+                    if(dist == Double.MAX_VALUE )
+                        forNowUnConnectivity++;
+                }
+            }
+            maxUnConnectivityMap.put(poke.getLocation(), forNowUnConnectivity);
+        }
+        ArrayList<CL_Pokemon> cl_pokemons = new ArrayList<>();
+        for (int i = 0; i < agentsSize; i++) {
+            int max= graph.getV().size();
+            Point3D temp = new Point3D(0,0,0);
+            for(Point3D p :maxUnConnectivityMap.keySet()){
+                if(max > maxUnConnectivityMap.get(p))
+                    temp = p;
+            }
+            for(CL_Pokemon poke : gotOne){
+                if(poke.getLocation() == temp)
+                    cl_pokemons.add(poke);
+            }
+        }
+    }
     public void SetGameAgents(api.game_service game, directed_weighted_graph graph){
         ArrayList<CL_Pokemon> gotOne= Arena.json2Pokemons(game.getPokemons());
         for (int i = 0; i < howMuchAgents(game.toString()); i++){
@@ -162,8 +208,6 @@ public class Wish implements Runnable{
         ga.init(arena.getGraph());
         //agents loop
         for (int i = 0; i <  Agents.size(); i++) {
-
-
             int src = Agents.get(i).getSrcNode();
             double min = Double.MAX_VALUE;
             int deleteIndex = 0;
