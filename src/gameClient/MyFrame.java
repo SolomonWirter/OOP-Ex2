@@ -8,8 +8,14 @@ import gameClient.util.Point3D;
 import gameClient.util.Range;
 import gameClient.util.Range2D;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.font.ShapeGraphicAttribute;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,7 +38,6 @@ public class MyFrame extends JFrame{
 		this._ar = ar;
 		updateFrame();
 	}
-
 	private void updateFrame() {
 		Range rx = new Range(20,this.getWidth()-20);
 		Range ry = new Range(this.getHeight()-10,150);
@@ -45,8 +50,8 @@ public class MyFrame extends JFrame{
 		int h = this.getHeight();
 		g.clearRect(0, 0, w, h);
 	//	updateFrame();
-		drawPokemons(g);
 		drawGraph(g);
+		drawPokemons(g);
 		drawAgants(g);
 		drawInfo(g);
 		
@@ -64,14 +69,16 @@ public class MyFrame extends JFrame{
 		Iterator<node_data> iter = gg.getV().iterator();
 		while(iter.hasNext()) {
 			node_data n = iter.next();
-			g.setColor(Color.blue);
-			drawNode(n,5,g);
+			g.setColor(Color.BLUE);
+//			drawNode(n,10,g);
 			Iterator<edge_data> itr = gg.getE(n.getKey()).iterator();
 			while(itr.hasNext()) {
 				edge_data e = itr.next();
-				g.setColor(Color.gray);
+				g.setColor(Color.DARK_GRAY);
 				drawEdge(e, g);
 			}
+			//draw node here for agent to paint over edge
+			drawNode(n,10,g);
 		}
 	}
 	private void drawPokemons(Graphics g) {
@@ -83,15 +90,21 @@ public class MyFrame extends JFrame{
 			
 			CL_Pokemon f = itr.next();
 			Point3D c = f.getLocation();
-			int r=10;
-			g.setColor(Color.green);
-			if(f.getType()<0) {g.setColor(Color.orange);}
-			if(c!=null) {
+			int r=15;
+//			g.setColor(Color.green);
+			Graphics2D g2 = (Graphics2D)g;
+			Toolkit tk = Toolkit.getDefaultToolkit();
+			Image type1 = tk.getImage("pokemon_Type1.png");
+			Image typeMinus1 = tk.getImage("pokemon_TypeMinus1.png");
+			Image img = type1;
 
+//			if(f.getType()<0) {g.setColor(Color.orange);}
+			if(f.getType()<0) {img = typeMinus1;}
+			if(c!=null) {
 				geo_location fp = this._w2f.world2frame(c);
-				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
+				g2.drawImage(img,(int)fp.x()-r,(int)fp.y()-r,2*r,2*r,this);
+//				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
 			//	g.drawString(""+n.getKey(), fp.ix(), fp.iy()-4*r);
-				
 			}
 		}
 		}
@@ -99,24 +112,31 @@ public class MyFrame extends JFrame{
 	private void drawAgants(Graphics g) {
 		List<CL_Agent> rs = _ar.getAgents();
 	//	Iterator<OOP_Point3D> itr = rs.iterator();
-		g.setColor(Color.red);
+//		g.setColor(Color.red);
 		int i=0;
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Image img = tk.getImage("agent.png");
 		while(rs!=null && i<rs.size()) {
 			geo_location c = rs.get(i).getLocation();
-			int r=8;
+			int r=20;
 			i++;
 			if(c!=null) {
-
 				geo_location fp = this._w2f.world2frame(c);
-				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
+				Graphics2D g2 = (Graphics2D) g;
+				g2.drawImage(img,(int)fp.x()-r,(int)fp.y()-r,2*r,2*r,this);
+//				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
 			}
 		}
 	}
 	private void drawNode(node_data n, int r, Graphics g) {
 		geo_location pos = n.getLocation();
 		geo_location fp = this._w2f.world2frame(pos);
-		g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
-		g.drawString(""+n.getKey(), (int)fp.x(), (int)fp.y()-4*r);
+		Graphics2D g2 = (Graphics2D)g;
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Image stopNode = tk.getImage("nodePokemonGO.png");
+		g2.drawImage(stopNode,(int)fp.x()-2*r,(int)fp.y()-2*r,4*r,4*r,this);
+//		g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
+		g.drawString(""+n.getKey(), (int)fp.x(), (int)fp.y()+4*r);
 	}
 	private void drawEdge(edge_data e, Graphics g) {
 		directed_weighted_graph gg = _ar.getGraph();
@@ -124,7 +144,9 @@ public class MyFrame extends JFrame{
 		geo_location d = gg.getNode(e.getDest()).getLocation();
 		geo_location s0 = this._w2f.world2frame(s);
 		geo_location d0 = this._w2f.world2frame(d);
-		g.drawLine((int)s0.x(), (int)s0.y(), (int)d0.x(), (int)d0.y());
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setStroke(new BasicStroke(1));
+		g2.drawLine((int)s0.x(), (int)s0.y(), (int)d0.x(), (int)d0.y());
 	//	g.drawString(""+n.getKey(), fp.ix(), fp.iy()-4*r);
 	}
 }
