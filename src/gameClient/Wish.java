@@ -2,10 +2,8 @@ package gameClient;
 import api.*;
 import Server.Game_Server_Ex2;
 import com.google.gson.*;
-import gameClient.util.Range2Range;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +14,6 @@ public class Wish implements Runnable{
     private HashMap<Integer, HashMap<Integer, List<node_data>>> dijkstraAllMap;
     private HashMap<Integer,Integer> nextNodes;
 
-
     public static void main(String[] args) {
         Thread client = new Thread(new Wish());
         client.start();
@@ -24,20 +21,20 @@ public class Wish implements Runnable{
 
     @Override
     public void run() {
-        game_service game = Game_Server_Ex2.getServer(11);
+        game_service game = Game_Server_Ex2.getServer(23);
         init(game);//done
         game.startGame();
-        _win.setTitle("The game - "+game.toString());
         int ind=0;
         while (game.isRunning()){
             try {
+                arena.setPokemons(Arena.json2Pokemons(game.getPokemons()));
+                _win.update(arena);
+                _win.paint(_win.getGraphics());
+                _win.setTitle("Until now - " + game.toString());
                 moveAgents(game, arena, nextNodes);
-                if(ind%1==0) { _win.repaint();_win.setTitle("Until now - "+game.toString());}
-
-//                Thread.sleep(100);
+                Thread.sleep(100);
                 ind++;
                 setNextNodes(game);
-//                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -51,31 +48,25 @@ public class Wish implements Runnable{
         int i = 0;
         int dt = 200;
         for(CL_Agent agent : Arena.getAgents(game.getAgents(), arena.getGraph())){//changed the nextNode
-                int ToNode = nextNodes.get(agent.getID());
-                String sin = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).toJSON();
-                agent.setNextNode(ToNode);
-                int id = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).getID();
-                game.chooseNextEdge(agent.getID(), ToNode);
-                int dy = (int)(130/((Math.floor(agent.getValue()/23))+1));//we need to find formula for this
-                Thread.sleep(dy);//do not divide by 0
-                game.move();
-                String son = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).toJSON();
-                sin = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).toJSON();
+            int ToNode = nextNodes.get(agent.getID());
+            agent.setNextNode(ToNode);
+            int id = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).getID();
+            game.chooseNextEdge(agent.getID(), ToNode);
+            int dy = (int)(dt/agent.getSpeed());//we need to find formula for this
+            Thread.sleep(dy);
+            game.move();
+            if(Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).getSrcNode()!=agent.getSrcNode()){
                 System.out.println("Agent: "+agent.getID()+", val: "+agent.getValue()+",  "+
                         agent.getSrcNode() +" , turned to node: "+ToNode +" Speed-  "+ agent.getSpeed());
-                i++;
+                }
+            i++;
         }
-
     }
     public void init(game_service game) {
-        String g = game.getGraph();
-        String fs = game.getPokemons();
         dw_graph_algorithms gg = buildGraph(game.getGraph(), game);
         //gg.init(g);
         arena = new Arena();
         arena.setGraph(gg.getGraph());
-        arena.setPokemons(Arena.json2Pokemons(fs));
-
 
         String info = game.toString();
         JSONObject line;
@@ -88,8 +79,6 @@ public class Wish implements Runnable{
             ArrayList<CL_Pokemon> cl_fs = Arena.json2Pokemons(game.getPokemons());
             for(int a = 0;a<cl_fs.size();a++) {
                 Arena.updateEdge(cl_fs.get(a),gg.getGraph());
-//                Arena.w2f(gg.getGraph(), )
-
             }
             arena.setPokemons(cl_fs);
             SetGameAgents(game, arena.getGraph());
@@ -106,6 +95,7 @@ public class Wish implements Runnable{
         }
         catch (JSONException | InterruptedException e) {e.printStackTrace();}
     }
+
     public void SetGameAgents(api.game_service game, directed_weighted_graph graph){
         ArrayList<CL_Pokemon> gotOne= Arena.json2Pokemons(game.getPokemons());
         for (int i = 0; i < howMuchAgents(game.toString()); i++){
@@ -117,6 +107,7 @@ public class Wish implements Runnable{
             }
         }
     }
+
     public int howMuchAgents(String game){
         JsonElement gameElement = JsonParser.parseString(game);
         JsonObject pokemonsObject = gameElement.getAsJsonObject();
@@ -124,6 +115,7 @@ public class Wish implements Runnable{
         JsonObject gameServerObject = gameServerElement.getAsJsonObject();
         return gameServerObject.get("agents").getAsInt();
     }
+
     public api.dw_graph_algorithms buildGraph(String JsonGraph, api.game_service game){
         api.DWGraph_DS_Deserializer deserializer = new api.DWGraph_DS_Deserializer();
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -134,6 +126,7 @@ public class Wish implements Runnable{
         graphAlgo.init(graph);
         return graphAlgo;
     }
+
     public void dijkstraAll(api.directed_weighted_graph graph){
 
 //        api.directed_weighted_graph graph = graphAlgo.getGraph();
@@ -153,6 +146,7 @@ public class Wish implements Runnable{
             }
         }
     }
+
     public void setNextNodesInit(game_service game) throws InterruptedException {
         String AgentsAfterMove;
         AgentsAfterMove = game.getAgents();
@@ -169,13 +163,7 @@ public class Wish implements Runnable{
         //agents loop
         for (int i = 0; i <  Agents.size(); i++) {
 
-//            //if and else stats help me determine if the agent is already on way so i can add new node
-//            if (Agents.get(i).isMoving()){
-//                //uses Arena.getAgents(game.getAgents(), arena.getGraph()) to directly change in game
-//                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setCurrNode(Agents.get(i).getNextNode());
-//            }else if(Agents.get(i).getNextNode() != -1){
-//                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setCurrNode(Agents.get(i).getNextNode());
-//            }
+
             int src = Agents.get(i).getSrcNode();
             double min = Double.MAX_VALUE;
             int deleteIndex = 0;
@@ -207,8 +195,9 @@ public class Wish implements Runnable{
             }
         }
     }
+
     public void setNextNodes(game_service game) throws InterruptedException {
-        Thread.sleep(100);
+//        Thread.sleep(100);
         String AgentsAfterMove = game.getAgents();
 
         String g2p = game.getPokemons();
@@ -225,24 +214,12 @@ public class Wish implements Runnable{
         ga.init(arena.getGraph());
         //agents loop
         for (int i = 0; i <  Agents.size(); i++) {
-
-//            //if and else stats help me determine if the agent is already on way so i can add new node
-//            if (Agents.get(i).isMoving()){
-//                //uses Arena.getAgents(game.getAgents(), arena.getGraph()) to directly change in game
-//                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setCurrNode(Agents.get(i).getNextNode());
-//            }else if(Agents.get(i).getNextNode() != -1){
-//                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setCurrNode(Agents.get(i).getNextNode());
-//            }
             int src = Agents.get(i).getSrcNode();
             double min = Double.MAX_VALUE;
             int deleteIndex = 0;
             //pokemons inner loop
             for (int j = 0; j < Pokemons.size(); j++) {
-                List<CL_Pokemon> fuck = Arena.json2Pokemons(game.getPokemons());
                 Arena.updateEdge(Pokemons.get(j), arena.getGraph());
-                Arena.updateEdge(fuck.get(j), arena.getGraph());
-                System.out.println(fuck.get(j).get_edge());
-                System.out.println(fuck.get(j).getType());
                 int dest = Pokemons.get(j).get_edge().getDest();
                 if (src == dest)
                     dest = Pokemons.get(j).get_edge().getSrc();
