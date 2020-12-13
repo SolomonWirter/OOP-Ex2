@@ -43,26 +43,46 @@ public class Wish implements Runnable{
         }
         String res = game.toString();
         System.out.println(res);
+        Thread.interrupted();
 
     }
 
+    //we'll put to sleep according to edge => fuck yes
     public static void moveAgents(game_service game, Arena arena, HashMap<Integer, Integer> nextNodes) throws InterruptedException {//arena have graph
         int i = 0;
-        int dt = 200;
+        int dt = 50;
+        List <CL_Pokemon> pokemons = Arena.json2Pokemons(game.getPokemons());
+        HashMap<Integer, CL_Pokemon> pokeMap = new HashMap<>();
+        for(CL_Pokemon poke: pokemons){
+            Arena.updateEdge(poke, arena.getGraph());
+            pokeMap.put(poke.get_edge().getDest(), poke);
+            pokeMap.put(poke.get_edge().getSrc(),poke);
+        }
         for(CL_Agent agent : Arena.getAgents(game.getAgents(), arena.getGraph())){//changed the nextNode
             int ToNode = nextNodes.get(agent.getID());
+//            int dy = (int)(dt/(int)(Math.pow((agent.getSpeed()),2)));//we need to find formula for this
+            if(agent.getSpeed() > 2)
+                dt*=0.75;
+            if(pokeMap.get(ToNode)!=null){
+                if(agent.getSpeed() > 1){
+                    dt = (int)(dt/(int)(Math.pow((agent.getSpeed()),2)+agent.getSpeed()));
+                    if(agent.getSpeed()>2) {
+                        dt = (int) (dt / (Math.pow(pokeMap.get(ToNode).get_edge().getWeight(), 0.5)));
+                    }
+                }
+            }
+
             agent.setNextNode(ToNode);
             int id = Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).getID();
             game.chooseNextEdge(agent.getID(), ToNode);
-            int dy = (int)(dt/agent.getSpeed());//we need to find formula for this
-            Thread.sleep(dy);
-            game.move();
+            Thread.sleep(dt);
             if(Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).getSrcNode()!=agent.getSrcNode()){
                 System.out.println("Agent: "+agent.getID()+", val: "+agent.getValue()+",  "+
                         agent.getSrcNode() +" , turned to node: "+ToNode +" Speed-  "+ agent.getSpeed());
                 }
             i++;
         }
+        game.move();
     }
     public void init(game_service game, boolean isConnected) {
         dw_graph_algorithms gg = buildGraph(game.getGraph(), game);
@@ -96,7 +116,7 @@ public class Wish implements Runnable{
             _win.update(arena);
             _win.show();
             nextNodes = new HashMap<>();
-            setNextNodesInit(game);
+            setNextNodes(game);
         }
         catch (JSONException | InterruptedException e) {e.printStackTrace();}
     }
@@ -193,53 +213,6 @@ public class Wish implements Runnable{
         }
     }
 
-    public void setNextNodesInit(game_service game) throws InterruptedException {
-        String AgentsAfterMove;
-        AgentsAfterMove = game.getAgents();
-        String g2p = game.getPokemons();
-        List<CL_Pokemon> Pokemons = Arena.json2Pokemons(g2p);
-        List<CL_Agent> Agents = Arena.getAgents(AgentsAfterMove, arena.getGraph());
-        arena.setAgents(Agents);
-        arena.setPokemons(Pokemons);
-        for(CL_Pokemon pok : arena.getPokemons()){Arena.updateEdge(pok, arena.getGraph());}
-        int from = 0;
-        int to = 0;
-        dw_graph_algorithms ga = new DWGraph_Algo();
-        ga.init(arena.getGraph());
-        //agents loop
-        for (int i = 0; i <  Agents.size(); i++) {
-            int src = Agents.get(i).getSrcNode();
-            double min = Double.MAX_VALUE;
-            int deleteIndex = 0;
-            //pokemons inner loop
-            for (int j = 0; j < Pokemons.size(); j++) {
-                Arena.updateEdge(Pokemons.get(j), arena.getGraph());
-                int dest = Pokemons.get(j).get_edge().getDest();
-                if (src == dest)
-                    dest = Pokemons.get(j).get_edge().getSrc();
-                ga.init(arena.getGraph());
-                double pathWeight = ga.shortestPathDist(src, dest);
-                if (pathWeight < min) {
-                    from = src;
-                    to = dest;
-                    min = pathWeight;
-                    deleteIndex = j;
-                }
-            }
-            //if the agent don't have path to any pokemon
-            if (min < Double.MAX_VALUE) {
-                Pokemons.remove(deleteIndex);
-                int dest = dijkstraAllMap.get(from).get(to).get(1).getKey();//next node after src in dijkstra path
-                int id = Agents.get(i).getID();
-                if (nextNodes.keySet().contains(id)) {//changed the nextNode
-                    nextNodes.remove(id);
-                }
-                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setNextNode(dest);
-                nextNodes.put(id, dest);
-            }
-        }
-    }
-
     public void setNextNodes(game_service game) throws InterruptedException {
 //        Thread.sleep(100);
         String AgentsAfterMove = game.getAgents();
@@ -289,4 +262,52 @@ public class Wish implements Runnable{
             }
         }
     }
+
+    public void setNextNodesd(game_service game) throws InterruptedException {
+        String AgentsAfterMove;
+        AgentsAfterMove = game.getAgents();
+        String g2p = game.getPokemons();
+        List<CL_Pokemon> Pokemons = Arena.json2Pokemons(g2p);
+        List<CL_Agent> Agents = Arena.getAgents(AgentsAfterMove, arena.getGraph());
+        arena.setAgents(Agents);
+        arena.setPokemons(Pokemons);
+        for(CL_Pokemon pok : arena.getPokemons()){Arena.updateEdge(pok, arena.getGraph());}
+        int from = 0;
+        int to = 0;
+        dw_graph_algorithms ga = new DWGraph_Algo();
+        ga.init(arena.getGraph());
+        //agents loop
+        for (int i = 0; i <  Agents.size(); i++) {
+            int src = Agents.get(i).getSrcNode();
+            double min = Double.MAX_VALUE;
+            int deleteIndex = 0;
+            //pokemons inner loop
+            for (int j = 0; j < Pokemons.size(); j++) {
+                Arena.updateEdge(Pokemons.get(j), arena.getGraph());
+                int dest = Pokemons.get(j).get_edge().getDest();
+                if (src == dest)
+                    dest = Pokemons.get(j).get_edge().getSrc();
+                ga.init(arena.getGraph());
+                double pathWeight = ga.shortestPathDist(src, dest);
+                if (pathWeight < min) {
+                    from = src;
+                    to = dest;
+                    min = pathWeight;
+                    deleteIndex = j;
+                }
+            }
+            //if the agent don't have path to any pokemon
+            if (min < Double.MAX_VALUE) {
+                Pokemons.remove(deleteIndex);
+                int dest = dijkstraAllMap.get(from).get(to).get(1).getKey();//next node after src in dijkstra path
+                int id = Agents.get(i).getID();
+                if (nextNodes.keySet().contains(id)) {//changed the nextNode
+                    nextNodes.remove(id);
+                }
+                Arena.getAgents(game.getAgents(), arena.getGraph()).get(i).setNextNode(dest);
+                nextNodes.put(id, dest);
+            }
+        }
+    }
+
 }
