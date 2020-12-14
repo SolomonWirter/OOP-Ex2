@@ -3,6 +3,7 @@ import Server.Game_Server_Ex2;
 import api.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gameClient.util.Point3D;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,35 +32,38 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Please Choose A level between [0-23]");
-        levelNumber = sc.nextInt();
-        game_service game = Game_Server_Ex2.getServer(levelNumber);
-        directed_weighted_graph graph = setGraph(game);
-        dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
-        graphAlgorithms.init(graph);
+//        Scanner sc = new Scanner(System.in);
+//        System.out.println("Please Choose A level between [0-23]");
+//        levelNumber = sc.nextInt();
+//        game_service game = Game_Server_Ex2.getServer(levelNumber);
+        for (int i = 0; i < 24; i++) {
+            game_service game = Game_Server_Ex2.getServer(i);
+            directed_weighted_graph graph = setGraph(game);
+            dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
+            graphAlgorithms.init(graph);
 
-        initiate(game);
-        game.startGame();
-        while (game.isRunning()) {
-            try {
-                myArena.setPokemons(Arena.json2Pokemons(game.getPokemons()));
-                _win.update(myArena);
-                _win.paint(_win.getGraphics());
-                _win.setTitle("As GameEx2");
-                moveAgents(game, nextNodes, Arena.json2Pokemons(game.getPokemons()));
+            initiate(game);
+            game.startGame();
+            while (game.isRunning()) {
+                try {
+                    myArena.setPokemons(Arena.json2Pokemons(game.getPokemons()));
+                    _win.update(myArena);
+                    _win.paint(_win.getGraphics());
+                    _win.setTitle("As GameEx2");
+                    moveAgents(game, nextNodes, Arena.json2Pokemons(game.getPokemons()));
 //                _win.repaint();
-                Thread.sleep(100);
-                setNext(game, myArena.getPokemons());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                    Thread.sleep(100);
+                    setNext(game, myArena.getPokemons());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 //            System.out.println(game.toString());
 //            System.out.println(Thread.interrupted());
 //            System.exit(0);
+            }
+            String res = game.toString();
+            System.out.println(res);
         }
-        String res = game.toString();
-        System.out.println(res);
     }
 
     public directed_weighted_graph setGraph(game_service game) {
@@ -180,10 +184,9 @@ public class Client implements Runnable {
     }
 
     public void setNext(game_service game, List<CL_Pokemon> pokemonList) {
-        List<CL_Pokemon> Pokemons = Arena.json2Pokemons(game.getPokemons());
         //Do not use myArena pokemons => need update
         List<CL_Agent> agentList = Arena.getAgents(game.getAgents(), myArena.getGraph());
-        Pokemons = Arena.json2Pokemons(game.getPokemons());
+        List<CL_Pokemon>Pokemons = Arena.json2Pokemons(game.getPokemons());
         myArena.setAgents(agentList);
         myArena.setPokemons(Pokemons);
         for (CL_Pokemon pokemon : myArena.getPokemons()) {
@@ -197,24 +200,69 @@ public class Client implements Runnable {
 
         for (int i = 0; i < agentList.size(); i++) {
             int delete_index = 0;
+            int delete_other_index = -1;
             double min = Double.MAX_VALUE;
             int src = agentList.get(i).getSrcNode();
             for (int j = 0; j < Pokemons.size(); j++) {
-//                Arena.updateEdge(pokemonList.get(j), myArena.getGraph());
+                src = agentList.get(i).getSrcNode();
                 int dest = Pokemons.get(j).get_edge().getDest();
+                int destTempSt = dest;
                 if (src == dest)
-                    dest = Pokemons.get(j).get_edge().getSrc();
+                    destTempSt = Pokemons.get(j).get_edge().getSrc();
                 graphAlgorithms.init(myArena.getGraph());
-                double weight = graphAlgorithms.shortestPathDist(src, dest);
-                if (weight < min) {
+                double Weight = graphAlgorithms.shortestPathDist(src, destTempSt);
+                if (Weight < min) {
                     from = src;
-                    to = dest;
-                    min = weight;
+                    to = destTempSt;
+                    min = Weight;
                     delete_index = j;
                 }
+                for (int k = i+1; k < agentList.size(); k++) {
+                    int tempSrc = agentList.get(k).getSrcNode();
+                    int destTemp = dest;
+                    if (tempSrc == dest)
+                        destTemp = Pokemons.get(j).get_edge().getSrc();
+                    graphAlgorithms.init(myArena.getGraph());
+                    double tempWeight = graphAlgorithms.shortestPathDist(tempSrc, destTemp);
+                    if (tempWeight < min) {
+                        from = tempSrc;
+                        to = destTemp;
+                        min = tempWeight;
+                        delete_index = j;
+                        int change_index = k;
+                        CL_Agent tempAgent = agentList.get(i);
+                        agentList.set(i, agentList.get(change_index));
+                        agentList.set(change_index, tempAgent);
+                    }
+                }
+
+//                graphAlgorithms.init(myArena.getGraph());
+//                double weight = graphAlgorithms.shortestPathDist(src, dest);
+//                if (weight < min) {
+//                    from = src;
+//                    to = dest;
+//                    min = weight;
+//                    delete_index = j;
+//                }
+
+
+                if(anAgentInt(game)<Pokemons.size()){
+                    Point3D p = ifSomeOneClose(Pokemons,Pokemons.get(j).get_edge().getDest());
+                    if(p!=null){
+                        for (int k = 0; k < Pokemons.size(); k++) {
+                            if(k!=j){
+                                if(Pokemons.get(k).getLocation()==p)
+                                    delete_other_index= k;
+                            }
+                        }
+                    }
+                }
             }
+
             if (min < Double.MAX_VALUE) {
                 Pokemons.remove(delete_index);
+                if(delete_other_index!=-1)
+                    Pokemons.remove(delete_other_index);
                 int dest = allPaths.get(from).get(to).get(1).getKey();
                 int ID = agentList.get(i).getID();
                 if (nextNodes.keySet().contains(ID))
@@ -247,6 +295,8 @@ public class Client implements Runnable {
 
             CL_Agent tempAgent = agentIterator.next();
             int ID = tempAgent.getID();
+            if (nextNodes.get(ID) == null)
+                continue;
             int key = nextNodes.get(ID);
 
             if (tempAgent.getSpeed() > 2) dt = dt * 0.75;
@@ -268,4 +318,117 @@ public class Client implements Runnable {
         }
         game.move();
     }
+
+    /**
+     * This function is based on the assumption that the pokemons are coming from a high chances place to get pokemons
+     * it checks if it can keep to be in the "good" loop
+     * @param nodeTo
+     * @param nodeFrom
+     * @return
+     */
+    public boolean avoidFromTraps(int nodeTo, int nodeFrom){
+        dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
+        for(edge_data edgeData : myArena.getGraph().getE(nodeTo)){
+            if(edgeData.getSrc() == nodeTo){
+                graphAlgorithms.init(myArena.getGraph());
+                int from = edgeData.getDest();
+                if(graphAlgorithms.shortestPathDist(from,nodeFrom)<Double.MAX_VALUE)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *Commented function, if you cant work it out, delete it.
+     */
+//    public List<CL_Pokemon> keep2Meters(List<CL_Pokemon> pokemons, List<CL_Agent> agents, game_service game){
+//        dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
+//        graphAlgorithms.init(myArena.getGraph());
+//
+//        double MaxFromMin = 0;
+//        HashMap<CL_Pokemon,CL_Pokemon> hashMapToList = new HashMap<>();
+//        CL_Pokemon[] array = new CL_Pokemon[6];
+//        HashMap<Double,HashMap<Integer,Integer>> helper = new HashMap<>();
+//        for (int i = 0; i < 3; i++) {
+//            array[i] = pokemons.get(i);
+//            array[i+3] = pokemons.get(0);
+//            hashMapToList.put(pokemons.get(i),pokemons.get(0));
+//            int pokeI = pokemons.get(i).get_edge().getSrc();
+//            int pokeJ = pokemons.get(0).get_edge().getDest();
+//            double dist = graphAlgorithms.shortestPathDist(pokeI,pokeJ);
+//            if(MaxFromMin < dist)
+//                MaxFromMin = dist;
+//            HashMap<Integer,Integer> temp = new HashMap<>();
+//            temp.put(pokeI,pokeJ);
+//            helper.put(dist,temp);
+//        }
+//
+//        for (int i = 0; i < pokemons.size(); i++) {
+//            for (int j = 0; j < pokemons.size(); j++) {
+//                if(i!=j){
+//                    int pokeI = pokemons.get(i).get_edge().getSrc();
+//                    int pokeJ = pokemons.get(j).get_edge().getDest();
+//                    double dist = graphAlgorithms.shortestPathDist(pokeI,pokeJ);
+//                    if(dist < MaxFromMin){
+//                        array[i] = pokemons.get(i);
+//                        array[i+3] = pokemons.get(j);
+//                        hashMapToList.put(pokemons.get(i),pokemons.get(j));
+//                        helper = keep2MetersHelper(helper,dist,pokeI,pokeJ);
+//                        MaxFromMin = keep2MetersMaxFromMin(helper);
+//                    }
+//                }
+//            }
+//        }
+//        CL_Pokemon[] array = new CL_Pokemon[6];
+//        int index = 0;
+//        for (CL_Pokemon poke : hashMapToList.keySet()) {
+//            array[index] = poke;
+//            array[index+3] = hashMapToList.get(poke);
+//            index++;
+//        }
+//
+////        return
+//    }
+//    public HashMap<Double,HashMap<Integer,Integer>> keep2MetersHelper(HashMap<Double,HashMap<Integer,Integer>> helper
+//            , double dist, int src, int dest){
+//        for (double distance :helper.keySet()) {
+//            if (dist < distance){
+//                helper.remove(distance);
+//                HashMap<Integer,Integer> temp = new HashMap<>();
+//                temp.put(src,dest);
+//                helper.put(dist,temp);
+//                return helper;
+//            }
+//        }
+//        return helper;
+//    }
+//
+//    public Double keep2MetersMaxFromMin(HashMap<Double,HashMap<Integer,Integer>> helper){
+//        double MaxFromMin = 0;
+//        for (Double dd : helper.keySet()){
+//            if(MaxFromMin < dd)
+//                MaxFromMin = dd;
+//        }
+//        return MaxFromMin;
+//    }
+
+    /**
+     * The function indicates if there is 2 pokemons that close distance
+     * If there is close distance pokemons (less then 8) so the agent will take him too, because they are close
+     * @param pokemons
+     * @param src
+     * @return
+     */
+    public Point3D ifSomeOneClose(List<CL_Pokemon>pokemons, int src){
+        dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
+        graphAlgorithms.init(myArena.getGraph());
+        for (CL_Pokemon poke : pokemons){
+            int dest = poke.get_edge().getDest();
+            if(graphAlgorithms.shortestPathDist(src,dest) < 2)
+                return poke.getLocation();
+        }
+        return null;
+    }
+
 }
