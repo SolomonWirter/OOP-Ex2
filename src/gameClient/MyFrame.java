@@ -8,14 +8,8 @@ import gameClient.util.Point3D;
 import gameClient.util.Range;
 import gameClient.util.Range2D;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.font.ShapeGraphicAttribute;
-import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,7 +20,9 @@ import java.util.List;
  * code and not to take it "as is".
  *
  */
-public class MyFrame extends JFrame{
+public class MyFrame extends JFrame {
+	private Image dbImage;
+	private Graphics dbg;
 	private int _ind;
 	private Arena _ar;
 	private gameClient.util.Range2Range _w2f;
@@ -46,15 +42,21 @@ public class MyFrame extends JFrame{
 		_w2f = Arena.w2f(g,frame);
 	}
 	public void paint(Graphics g) {
+		dbImage = createImage(getWidth(),getHeight());
+		dbg = dbImage.getGraphics();
+		paintComp(dbg);
+		g.drawImage(dbImage,0,0,this);
+	}
+	public void paintComp(Graphics g){
 		int w = this.getWidth();
 		int h = this.getHeight();
 		g.clearRect(0, 0, w, h);
-	//	updateFrame();
+		updateFrame();
 		drawGraph(g);
 		drawPokemons(g);
 		drawAgants(g);
 		drawInfo(g);
-		
+
 	}
 	private void drawInfo(Graphics g) {
 		List<String> str = _ar.get_info();
@@ -84,14 +86,13 @@ public class MyFrame extends JFrame{
 	private void drawPokemons(Graphics g) {
 		List<CL_Pokemon> fs = _ar.getPokemons();
 		if(fs!=null) {
-		Iterator<CL_Pokemon> itr = fs.iterator();
+		Iterator<CL_Pokemon> itr = fs.listIterator();
 		
 		while(itr.hasNext()) {
 			
 			CL_Pokemon f = itr.next();
 			Point3D c = f.getLocation();
 			int r=15;
-//			g.setColor(Color.green);
 			Graphics2D g2 = (Graphics2D)g;
 			Toolkit tk = Toolkit.getDefaultToolkit();
 			Image type1 = tk.getImage("pokemon_Type1.png");
@@ -149,4 +150,6 @@ public class MyFrame extends JFrame{
 		g2.drawLine((int)s0.x(), (int)s0.y(), (int)d0.x(), (int)d0.y());
 	//	g.drawString(""+n.getKey(), fp.ix(), fp.iy()-4*r);
 	}
+
+
 }
