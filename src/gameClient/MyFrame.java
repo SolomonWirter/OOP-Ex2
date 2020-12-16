@@ -1,9 +1,6 @@
 package gameClient;
 
-import api.directed_weighted_graph;
-import api.edge_data;
-import api.geo_location;
-import api.node_data;
+import api.*;
 import gameClient.util.Point3D;
 import gameClient.util.Range;
 import gameClient.util.Range2D;
@@ -76,7 +73,7 @@ public class MyFrame extends JFrame {
 			Iterator<edge_data> itr = gg.getE(n.getKey()).iterator();
 			while(itr.hasNext()) {
 				edge_data e = itr.next();
-				g.setColor(Color.DARK_GRAY);
+				g.setColor(Color.BLACK);
 				drawEdge(e, g);
 			}
 			//draw node here for agent to paint over edge
@@ -99,21 +96,17 @@ public class MyFrame extends JFrame {
 			Image typeMinus1 = tk.getImage("pokemon_TypeMinus1.png");
 			Image img = type1;
 
-//			if(f.getType()<0) {g.setColor(Color.orange);}
 			if(f.getType()<0) {img = typeMinus1;}
 			if(c!=null) {
 				geo_location fp = this._w2f.world2frame(c);
 				g2.drawImage(img,(int)fp.x()-r,(int)fp.y()-r,2*r,2*r,this);
-//				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
-			//	g.drawString(""+n.getKey(), fp.ix(), fp.iy()-4*r);
+
 			}
 		}
 		}
 	}
 	private void drawAgants(Graphics g) {
 		List<CL_Agent> rs = _ar.getAgents();
-	//	Iterator<OOP_Point3D> itr = rs.iterator();
-//		g.setColor(Color.red);
 		int i=0;
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Image img = tk.getImage("agent.png");
@@ -125,7 +118,6 @@ public class MyFrame extends JFrame {
 				geo_location fp = this._w2f.world2frame(c);
 				Graphics2D g2 = (Graphics2D) g;
 				g2.drawImage(img,(int)fp.x()-r,(int)fp.y()-r,2*r,2*r,this);
-//				g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
 			}
 		}
 	}
@@ -135,9 +127,10 @@ public class MyFrame extends JFrame {
 		Graphics2D g2 = (Graphics2D)g;
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Image stopNode = tk.getImage("nodePokemonGO.png");
-		g2.drawImage(stopNode,(int)fp.x()-2*r,(int)fp.y()-2*r,4*r,4*r,this);
-//		g.fillOval((int)fp.x()-r, (int)fp.y()-r, 2*r, 2*r);
-		g.drawString(""+n.getKey(), (int)fp.x(), (int)fp.y()+4*r);
+		g2.drawImage(stopNode,(int)fp.x()-2*r,(int)fp.y()-2*r-20,4*r,4*r,this);
+		g.setFont(new Font("name",Font.BOLD,15));
+		g.setColor(Color.BLUE);
+		g.drawString(""+n.getKey(), (int)fp.x()-8, (int)fp.y()+4*r-58);
 	}
 	private void drawEdge(edge_data e, Graphics g) {
 		directed_weighted_graph gg = _ar.getGraph();
@@ -146,9 +139,9 @@ public class MyFrame extends JFrame {
 		geo_location s0 = this._w2f.world2frame(s);
 		geo_location d0 = this._w2f.world2frame(d);
 		Graphics2D g2 = (Graphics2D) g;
-		g2.setStroke(new BasicStroke(1));
+		g2.setStroke(new BasicStroke(3));
 		g2.drawLine((int)s0.x(), (int)s0.y(), (int)d0.x(), (int)d0.y());
-	//	g.drawString(""+n.getKey(), fp.ix(), fp.iy()-4*r);
+
 	}
 
 
