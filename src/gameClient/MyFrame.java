@@ -32,8 +32,8 @@ public class MyFrame extends JFrame {
 		updateFrame();
 	}
 	private void updateFrame() {
-		Range rx = new Range(20,this.getWidth()-20);
-		Range ry = new Range(this.getHeight()-10,150);
+		Range rx = new Range(100,this.getWidth()-250);
+		Range ry = new Range(this.getHeight()-50,250);
 		Range2D frame = new Range2D(rx,ry);
 		directed_weighted_graph g = _ar.getGraph();
 		_w2f = Arena.w2f(g,frame);
@@ -53,6 +53,7 @@ public class MyFrame extends JFrame {
 		drawPokemons(g);
 		drawAgants(g);
 		drawInfo(g);
+		drawDetails(g);
 
 	}
 	private void drawInfo(Graphics g) {
@@ -77,7 +78,7 @@ public class MyFrame extends JFrame {
 				drawEdge(e, g);
 			}
 			//draw node here for agent to paint over edge
-			drawNode(n,10,g);
+			drawNode(n,12,g);
 		}
 	}
 	private void drawPokemons(Graphics g) {
@@ -89,7 +90,7 @@ public class MyFrame extends JFrame {
 			
 			CL_Pokemon f = itr.next();
 			Point3D c = f.getLocation();
-			int r=15;
+			int r=18;
 			Graphics2D g2 = (Graphics2D)g;
 			Toolkit tk = Toolkit.getDefaultToolkit();
 			Image type1 = tk.getImage("pokemon_Type1.png");
@@ -112,7 +113,7 @@ public class MyFrame extends JFrame {
 		Image img = tk.getImage("agent.png");
 		while(rs!=null && i<rs.size()) {
 			geo_location c = rs.get(i).getLocation();
-			int r=20;
+			int r=26;
 			i++;
 			if(c!=null) {
 				geo_location fp = this._w2f.world2frame(c);
@@ -142,6 +143,24 @@ public class MyFrame extends JFrame {
 		g2.setStroke(new BasicStroke(3));
 		g2.drawLine((int)s0.x(), (int)s0.y(), (int)d0.x(), (int)d0.y());
 
+	}
+	private void drawDetails(Graphics g){
+		geo_location geo = _w2f.getFrame().fromPortion(new Point3D(0,0,0));
+		int i = (int)(Math.random()*1000);
+		System.out.println(i);
+		int x = (int)geo.x()+i;
+		int y = (int)geo.y()+i;
+		g.setColor(Color.BLACK);
+		g.setFont(new Font("name",Font.BOLD,25));
+		Client client = new Client();
+		g.drawString(new String("ID: "+client.idToJSON()),x,y);
+		g.drawString(new String("Logged: "+client.isLoggedToJSON()),x,y+25);
+		g.drawString(new String("Level: "+client.gameLevelToJSON()),x,y+50);
+		g.drawString(new String("Moves: "+client.movesToJSON()),x,y+75);
+		g.drawString(new String("Max Pokemons: "+client.pokeToJSON()),x,y+100);
+		g.drawString(new String("Agents: "+client.anAgentInt()),x,y+125);
+		g.drawString(new String("Grade: "+client.gradeToJSON()),x,y+150);
+		g.drawString(new String("Time Left: "+client.timeToEnd()),x,y+175);
 	}
 
 
