@@ -147,20 +147,23 @@ public class MyFrame extends JFrame {
 	private void drawDetails(Graphics g){
 		geo_location geo = _w2f.getFrame().fromPortion(new Point3D(0,0,0));
 		int i = (int)(Math.random()*1000);
-		System.out.println(i);
+//		System.out.println(i);
 		int x = (int)geo.x()+i;
 		int y = (int)geo.y()+i;
 		g.setColor(Color.BLACK);
-		g.setFont(new Font("name",Font.BOLD,25));
+		g.setFont(new Font("Webdings",Font.BOLD,16));
 		Client client = new Client();
-		g.drawString(new String("ID: "+client.idToJSON()),x,y);
-		g.drawString(new String("Logged: "+client.isLoggedToJSON()),x,y+25);
-		g.drawString(new String("Level: "+client.gameLevelToJSON()),x,y+50);
-		g.drawString(new String("Moves: "+client.movesToJSON()),x,y+75);
-		g.drawString(new String("Max Pokemons: "+client.pokeToJSON()),x,y+100);
-		g.drawString(new String("Agents: "+client.anAgentInt()),x,y+125);
-		g.drawString(new String("Grade: "+client.gradeToJSON()),x,y+150);
-		g.drawString(new String("Time Left: "+client.timeToEnd()),x,y+175);
+
+		String s = "ID: "+client.idToJSON() +
+		" \nLevel: "+client.gameLevelToJSON()+"Time Left: "+client.timeToEnd();
+		g.drawString(new String("Logged: "+client.isLoggedToJSON()),1100,70);
+		g.drawString(new String("ID: "+client.idToJSON()),1100,100);
+		g.drawString(new String("Moves: "+client.movesToJSON()),1100,130);
+		g.drawString(new String("Level: "+client.gameLevelToJSON()),1100,160);
+		g.drawString(new String("Max Pokemons: "+client.pokeToJSON()),1100,190);
+		g.drawString(new String("Agents: "+client.anAgentInt()),1100,220);
+		g.drawString(new String("Grade: "+client.gradeToJSON()),1100,250);
+		g.drawString(new String("Time Left: "+((client.timeToEnd()/1000))),1100,280);
 	}
 
 
