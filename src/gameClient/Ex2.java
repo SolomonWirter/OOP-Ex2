@@ -30,8 +30,6 @@ public class Ex2 implements Runnable {
     private List<CL_Agent> agentList;
 
     public static void main(String[] args) {
-        //getting from cmd the arguments for the pokemon game
-        //remove comments in main in order to work
         String id = args[0];
         String level = args[1];
         Ex2 c = new Ex2();
