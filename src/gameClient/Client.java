@@ -16,7 +16,8 @@ import java.util.*;
 
 public class Client implements Runnable {
 
-
+    private int gameLevel = 0;
+    private int ID = 209237544;
     private MyFrame _win;
     private Arena myArena;
     private HashMap<Integer, HashMap<Integer, List<node_data>>> allPaths;
@@ -27,31 +28,31 @@ public class Client implements Runnable {
     private long dt;
     private List<CL_Agent> agentList;
 
-
-    //formula => speed , weight, limit
-    //double/ limitPartition=Limit / agents
-    //SpeedWeightAll = for+=(speed/weight) | speed/weight is for higher partition for the faster agent
-    //limit / SpeedWeightAll
-    //limitPartitionAgent(i) = limitPartition *
-
     public static void main(String[] args) {
-        Thread thread = new Thread(new Client());
+        //getting from cmd the arguments for the pokemon game
+        //remove comments in main in order to work
+//        String id = args[0];
+//        String level = args[1];
+        Client c = new Client();
+//        c.ID=Integer.parseInt(id);
+//        c.gameLevel = Integer.parseInt(level);
+
+        Thread thread = new Thread(c);
         thread.setName("PokemonGame");
         thread.start();
-
     }
 
     @Override
     public void run() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Please Choose A level between [0-23]");
-        int levelNumber = sc.nextInt();
+//        game.login(208063289);
+//        Scanner sc = new Scanner(System.in);
+//        System.out.println("Please Choose A level between [0-23]");
+//        int levelNumber = sc.nextInt();
 
-        game = Game_Server_Ex2.getServer(levelNumber);
-
+        game = Game_Server_Ex2.getServer(gameLevel);
+//            game.login(ID);
         initiate(game);
         List<CL_Agent> agentList = Arena.getAgents(game.getAgents(), myArena.getGraph());
-        game.login(208063289);
         game.startGame();
         long StartTime = game.timeToEnd() / 1000;
         while (game.isRunning()) {
@@ -74,7 +75,12 @@ public class Client implements Runnable {
         System.exit(0);
     }
 
-
+    /**
+     * The function return directed_weighted_graph that she build from game
+     * Using Deserializer method.
+     * @param game
+     * @return
+     */
     public directed_weighted_graph setGraph(game_service game) {
 
         DWGraph_DS_Deserializer deserializer = new DWGraph_DS_Deserializer();
@@ -86,6 +92,13 @@ public class Client implements Runnable {
         return graph;
     }
 
+    /**
+     * The init function of the game process
+     * Build the arena Components
+     * And allPathsWeights (Dijkstra Map)
+     * and open the gui of the graph
+     * @param game
+     */
     public void initiate(game_service game) {
 
         directed_weighted_graph graph = setGraph(game);
@@ -122,6 +135,12 @@ public class Client implements Runnable {
 
     }
 
+    /**
+     * Under initial function:
+     * The function is building a structure that
+     * we using for more lightweight game operation
+     * @param graph
+     */
     public void setAllPathsWeights(directed_weighted_graph graph) {
 
         allPathsWeights = new HashMap<>();
@@ -143,6 +162,11 @@ public class Client implements Runnable {
         }
     }
 
+    /**
+     * using allPathsWeights instead dijkstra algorithm
+     * For lighter game operation
+     * @param graph
+     */
     public void findShortestPaths(directed_weighted_graph graph) {
         allPaths = new HashMap<>();
         for (node_data nodeData : graph.getV()) {
@@ -161,6 +185,15 @@ public class Client implements Runnable {
         }
     }
 
+    /**
+     * Only used in initial function
+     * Set the game agents in source of pokemon edge
+     * Not implement agent over if there is a Pokemon from whom
+     * agent is trapped in no way back.
+     * @param game
+     * @param graph
+     * @param pokemonList
+     */
     public void setGameAgents(game_service game, directed_weighted_graph graph, List<CL_Pokemon> pokemonList) {
 
         dw_graph_algorithms graphAlgorithms = new DWGraph_Algo();
@@ -218,6 +251,10 @@ public class Client implements Runnable {
 
     }
 
+    /**
+     * return how many agents are in game
+     * @return
+     */
     public int anAgentInt() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -229,6 +266,11 @@ public class Client implements Runnable {
         return -1;
     }
 
+    /**
+     * In use when move function
+     * @param graph
+     * @return
+     */
     public HashMap<Integer, HashMap<Integer, edge_data>> allEdges(directed_weighted_graph graph) {
         HashMap<Integer, HashMap<Integer, edge_data>> allEdges = new HashMap<>();
         for (node_data vertex : graph.getV()) {
@@ -243,6 +285,11 @@ public class Client implements Runnable {
         return allEdges;
     }
 
+    /**
+     * In use when move function
+     * @param pokemonList
+     * @return
+     */
     public HashMap<edge_data, List<CL_Pokemon>> MultiEdge(List<CL_Pokemon> pokemonList) {
         HashMap<edge_data, List<CL_Pokemon>> SharedEdges = new HashMap<>();
 
@@ -265,6 +312,11 @@ public class Client implements Runnable {
         return SharedEdges;
     }
 
+    /**
+     * Sorting, but for Pokemons
+     * By value
+     * @param pokemonList
+     */
     public void SortByValue(List<CL_Pokemon> pokemonList) {
         for (int i = 1; i < pokemonList.size(); i++) {
             double value1 = pokemonList.get(i - 1).getValue();
@@ -275,6 +327,11 @@ public class Client implements Runnable {
         }
     }
 
+    /**
+     * return the sum of value of the pokemon list.
+     * @param pokemonList
+     * @return
+     */
     public double getSumValue(List<CL_Pokemon> pokemonList) {
         double sum = 0;
         for (int i = 0; i < pokemonList.size(); i++) {
@@ -283,15 +340,27 @@ public class Client implements Runnable {
         return sum;
     }
 
+    /**
+     * The generic Swap function
+     * @param a
+     * @param b
+     */
     public void Swap(CL_Pokemon a, CL_Pokemon b) {
         CL_Pokemon temp = a;
         a = b;
         b = temp;
     }
 
+    /**
+     * The main logical core Of the game
+     * Updates arena
+     * Using allPathsWeights for checking the shortest path
+     * between agents and pokemons and assign each to another.
+     * also set the amount of sleep mil-sec for all agents
+     */
     public void MoveAgentsV2() {
-
-        agentList = Arena.getAgents(game.move(), myArena.getGraph());
+        game.move();
+        agentList = Arena.getAgents(game.getAgents(), myArena.getGraph());
         List<CL_Pokemon> pokemonList = Arena.json2Pokemons(game.getPokemons());
 
         myArena.setAgents(agentList);
@@ -370,7 +439,6 @@ public class Client implements Runnable {
             }
             if (!string.equals(agentWhere)) {
                 string = agentWhere;
-                System.out.println(agentWhere);
             }
 
             if (agent.getLocation().distance(agent.get_curr_fruit().getLocation()) <= value)
@@ -381,6 +449,13 @@ public class Client implements Runnable {
         dt = d;
     }
 
+    /**
+     * return the sleep time for agent using
+     * Agent Class function get_sg_dt
+     * @param agent
+     * @param A
+     * @return
+     */
     public long Sleeeep(CL_Agent agent, int A) {
         if (A > 1) A = A * 70;
         agent.set_SDT(A + 19);
@@ -388,7 +463,11 @@ public class Client implements Runnable {
         return dt;
     }
 
-
+    /**
+     * Return how much pokemons in game
+     * Used in game gui
+     * @return int
+     */
     public int pokeToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -400,6 +479,11 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * Return boolean for game.isLoggedIn()
+     * Used in game gui
+     * @return
+     */
     public boolean isLoggedToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -411,6 +495,11 @@ public class Client implements Runnable {
         return true;
     }
 
+    /**
+     * return the number of moves till now
+     * Used in game gui
+     * @return
+     */
     public int movesToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -422,6 +511,11 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * Return grade till now
+     * Used in game gui
+     * @return
+     */
     public int gradeToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -433,6 +527,11 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * return game level
+     * Used in game gui
+     * @return
+     */
     public int gameLevelToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -444,6 +543,11 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * return id of User
+     * Used in game gui
+     * @return
+     */
     public int idToJSON() {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -455,6 +559,11 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * Only used in game gui
+     * @param game
+     * @return
+     */
     public String graphToJSON(game_service game) {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -467,6 +576,11 @@ public class Client implements Runnable {
         return "0";
     }
 
+    /**
+     * Only used in game game gui
+     * @param game
+     * @return
+     */
     public int AgentsToJSON(game_service game) {
         try {
             JSONObject jsonObject = new JSONObject(game.toString());
@@ -479,6 +593,10 @@ public class Client implements Runnable {
         return 0;
     }
 
+    /**
+     * Only used in game game gui
+     * @return long
+     */
     public long timeToEnd() {
         return game.timeToEnd();
     }
