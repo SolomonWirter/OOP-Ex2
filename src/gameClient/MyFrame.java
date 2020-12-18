@@ -151,8 +151,8 @@ public class MyFrame extends JFrame {
 		int x = (int)geo.x()+i;
 		int y = (int)geo.y()+i;
 		g.setColor(Color.BLACK);
-		g.setFont(new Font("Webdings",Font.BOLD,16));
-		Client client = new Client();
+		g.setFont(new Font("name",Font.BOLD,20));
+		Ex2 client = new Ex2();
 
 		String s = "ID: "+client.idToJSON() +
 		" \nLevel: "+client.gameLevelToJSON()+"Time Left: "+client.timeToEnd();
