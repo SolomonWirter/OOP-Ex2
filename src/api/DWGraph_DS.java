@@ -20,34 +20,6 @@ public class DWGraph_DS implements directed_weighted_graph {
         this.graphEdges = new HashMap<Integer, HashMap<Integer, edge_data>>();
         this.destEdges = new HashMap<Integer, HashSet<Integer>>();
     }
-
-    /**
-     * Constructor from objects
-     * Needed in order to implement Deserializer for directed_weighted_graph
-     */
-    public DWGraph_DS(int edgeSize, HashMap<Integer, node_data> graphV, HashMap<Integer, HashMap<Integer, edge_data>> graphEdges, HashMap<Integer, HashSet<Integer>> destEdges) {
-        this.edgeSize = edgeSize;
-        this.graphV = new HashMap<Integer, node_data>();
-        this.graphEdges = new HashMap<Integer, HashMap<Integer, edge_data>>();
-        this.destEdges = new HashMap<Integer, HashSet<Integer>>();
-        for(node_data vertex : graphV.values()){
-            HashMap<Integer, edge_data> temp1 = new HashMap<Integer, edge_data>();
-            HashSet<Integer> temp2 = new HashSet<Integer>();
-            this.graphV.put(vertex.getKey(), vertex);
-            this.graphEdges.put(vertex.getKey(), temp1);
-            this.destEdges.put(vertex.getKey(), temp2);
-        }
-        for (int src: graphEdges.keySet()){
-            for(int dest:graphEdges.get(src).keySet()){
-                edge_data e = graphEdges.get(src).get(dest);
-                HashMap<Integer,edge_data> temp = new HashMap<>();
-                this.graphEdges.get(src).put(dest,e);
-                this.destEdges.get(dest).add(src);
-            }
-        }
-    }
-
-
     /**
      * Copy Constructor
      * A deep copy for a graph, will take a while on a very large Graph
