@@ -1,13 +1,23 @@
 package api;
 
-import org.jetbrains.annotations.NotNull;
-
-public class EdgeData implements edge_data, Comparable<edge_data>{
+public class EdgeData implements edge_data {
     private int src;
     private int dest;
     private double weight;
     private String info;
     private int tag;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EdgeData edgeData = (EdgeData) o;
+        return src == edgeData.src &&
+                dest == edgeData.dest &&
+                Double.compare(edgeData.weight, weight) == 0 &&
+                info.equals(edgeData.info);
+    }
+
 
     public EdgeData(int src, int dest, double weight){
         this.src = src;
@@ -65,10 +75,5 @@ public class EdgeData implements edge_data, Comparable<edge_data>{
                 ", info='" + info + '\'' +
                 ", tag=" + tag +
                 '}';
-    }
-
-    @Override
-    public int compareTo(@NotNull edge_data o) {
-        return (int) (this.getWeight() - o.getWeight());
     }
 }
