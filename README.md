@@ -1,8 +1,9 @@
 # Ex2 Project – weighted & directed Graph. - Welcome !
 
->###This Project represent 2 main Packages
+>**This Project represent 2 main Packages**
 
-###**Package api:**
+**Package api:**
+
 >Contain 5 Classes:
 
 **_Class NodeData - implements node_data_**
@@ -38,6 +39,7 @@
 
   ![alt text](https://i.ibb.co/19PncRT/For-1.png)
 </center> 
+
 * The Graph is using `HashMap` Data Structure for storing all the Vertexes of the Graph & Key for quick access to each Vertex.
 * Using also a Second `HashMap` for containing a list of Edges `EdgeData` for each Vertex `(+Weight)`.
 
@@ -89,7 +91,7 @@
 
 >**This Class receives a JSON String and Return Graph**
 
-###**Package gameClient:**
+**Package gameClient:**
 
 <center>
 
@@ -136,9 +138,9 @@
 * Knows how to follow the Agents Location Using `getAgents(String, Graph)`
 * The `String` is the Locations of the Agents -> Receiving it from the Game.
 
-#Class Ex2 -> Our Game Client
+<h2>Class Ex2 -> Our Game Client</h2>
 
->###This Class where all the above Combine.
+>**This Class where all the above Combine.**
 
 * The Algorithm that send the Agents towards the Pokemons is here...
 * Gets The Value of the Pokemon and the Edge Weight At first.
